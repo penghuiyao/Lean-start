@@ -9,6 +9,7 @@ import BooleanFunctions.Fourier
 import BooleanFunctions.Influence
 import BooleanFunctions.«Thm 2.33»
 import BooleanFunctions.Poincare
+import BooleanFunctions.«Thm 2.39»
 import BooleanFunctions.Noise
 import BooleanFunctions.Examples
 import BooleanFunctions.Hypercontractivity
