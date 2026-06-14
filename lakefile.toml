@@ -1,0 +1,26 @@
+name = "BooleanFunctions"
+version = "0.1.0"
+keywords = ["math", "formalization"]
+defaultTargets = ["BooleanFunctions", "TQI", "InformationTheory"]
+
+[leanOptions]
+pp.unicode.fun = true # pretty-prints `fun a => b`
+relaxedAutoImplicit = false
+maxSynthPendingDepth = 3
+
+[[require]]
+name = "mathlib"
+path = ".lake/packages/mathlib"
+
+[[require]]
+name = "Physlib"
+path = ".lake/packages/PhysLean"
+
+[[lean_lib]]
+name = "BooleanFunctions"
+
+[[lean_lib]]
+name = "TQI"
+
+[[lean_lib]]
+name = "InformationTheory"

@@ -1,0 +1,15 @@
+/.lake/
+/.build/
+/work/
+*.olean
+*.ilean
+*.c
+*.o
+*.so
+*.dll
+*.dylib
+*.exe
+*.trace
+*.prof
+.DS_Store
+Thumbs.db

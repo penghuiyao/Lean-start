@@ -1,0 +1,302 @@
+\documentclass[11pt]{article}
+\usepackage[margin=1in]{geometry}
+\usepackage{amsmath,amssymb,amsthm}
+\usepackage{enumitem}
+
+\newcommand{\Inf}{\operatorname{Inf}}
+\newcommand{\Maj}{\operatorname{Maj}}
+\newcommand{\E}{\mathbf E}
+\newcommand{\I}{\mathbf I}
+\newcommand{\Wone}{\mathbf W^{1}}
+
+\title{Solutions to O'Donnell, Analysis of Boolean Functions, Exercise 2.22}
+\author{}
+\date{}
+
+\begin{document}
+\maketitle
+
+Throughout, for odd $n$ we write $n=2m+1$ and use the
+standard majority function
+\[
+  \Maj_n(x)=\operatorname{sgn}(x_1+\cdots+x_n),
+  \qquad x\in\{-1,1\}^n.
+\]
+Thus there is no tie when $n$ is odd.
+
+\begin{enumerate}[label=\textbf{(\alph*)}]
+\item
+We prove
+\[
+  \Inf_i[\Maj_n]
+    =
+  \binom{n-1}{(n-1)/2}2^{1-n}
+  \qquad \text{for every } i\in[n].
+\]
+Fix $i$ and condition on all coordinates except $x_i$.  Among the
+remaining $n-1=2m$ coordinates, let $k$ be the number of $+1$'s.
+
+If $k>m$, then the other coordinates already have a strict positive
+majority, so changing $x_i$ cannot change the value of $\Maj_n$.  If
+$k<m$, the other coordinates already have a strict negative majority,
+and again changing $x_i$ cannot change the value of $\Maj_n$.  The only
+case in which $i$ is pivotal is $k=m$.
+
+When $k=m$, the other $2m$ coordinates are tied.  Then setting $x_i=1$
+makes the total sum equal to $1$, while setting $x_i=-1$ makes the total
+sum equal to $-1$.  Thus the value of majority changes.  Hence $i$ is
+pivotal exactly when the remaining $2m$ bits contain exactly $m$ many
+$+1$'s.
+
+There are $\binom{2m}{m}$ assignments of the remaining coordinates with
+this property, and $2^{2m}$ total assignments of the remaining
+coordinates.  Therefore
+\[
+  \Inf_i[\Maj_{2m+1}]
+    =
+  \frac{\binom{2m}{m}}{2^{2m}}
+    =
+  \binom{n-1}{(n-1)/2}2^{1-n}.
+\]
+
+\item
+Let
+\[
+  a_m=\Inf_1[\Maj_{2m+1}]
+      =\frac{\binom{2m}{m}}{4^m}.
+\]
+Then
+\[
+  \frac{a_{m+1}}{a_m}
+   =
+  \frac{\binom{2m+2}{m+1}}{4\binom{2m}{m}}
+   =
+  \frac{(2m+2)(2m+1)}{4(m+1)^2}
+   =
+  \frac{2m+1}{2m+2}
+   <1.
+\]
+Thus $a_m$ is strictly decreasing in $m$, equivalently
+$\Inf_1[\Maj_n]$ is decreasing as a function of odd $n$.
+
+\item
+We again use
+\[
+  \Inf_1[\Maj_{2m+1}]
+    =
+  \frac{\binom{2m}{m}}{4^m}
+    =
+  \frac{(2m)!}{(m!)^2 4^m}.
+\]
+Stirling's formula gives
+\[
+  m! = \sqrt{2\pi m}\,(m/e)^m(1+O(1/m)).
+\]
+Applying this also to $(2m)!$,
+\[
+\begin{aligned}
+  \binom{2m}{m}
+  &=
+  \frac{\sqrt{4\pi m}\,(2m/e)^{2m}(1+O(1/m))}
+       {2\pi m\,(m/e)^{2m}(1+O(1/m))}  \\
+  &=
+  \frac{4^m}{\sqrt{\pi m}}\,(1+O(1/m)).
+\end{aligned}
+\]
+Hence
+\[
+  \Inf_1[\Maj_{2m+1}]
+    =
+  \frac{1}{\sqrt{\pi m}}+O(m^{-3/2}).
+\]
+Since $m=(n-1)/2$,
+\[
+  \frac{1}{\sqrt{\pi m}}
+    =
+  \sqrt{\frac{2}{\pi}}\frac{1}{\sqrt{n-1}}
+    =
+  \sqrt{\frac{2}{\pi}}\frac{1}{\sqrt n}
+      +O(n^{-3/2}).
+\]
+Therefore
+\[
+  \Inf_1[\Maj_n]
+    =
+  \sqrt{\frac{2}{\pi}}\frac{1}{\sqrt n}
+    +O(n^{-3/2})
+\]
+for odd $n$.
+
+\item
+For monotone Boolean functions, Proposition 2.21 gives
+$\widehat f(i)=\Inf_i[f]$.  Majority is monotone and symmetric, so all
+degree-one Fourier coefficients are equal.  Thus
+\[
+  \Wone[\Maj_{2m+1}]
+    =
+  \sum_{i=1}^{2m+1}\widehat{\Maj_{2m+1}}(i)^2
+    =
+  (2m+1)a_m^2,
+  \qquad
+  a_m=\frac{\binom{2m}{m}}{4^m}.
+\]
+Let $B_m=(2m+1)a_m^2$.  Then
+\[
+  \frac{B_{m+1}}{B_m}
+    =
+  \frac{2m+3}{2m+1}
+  \left(\frac{a_{m+1}}{a_m}\right)^2
+    =
+  \frac{2m+3}{2m+1}
+  \left(\frac{2m+1}{2m+2}\right)^2
+    =
+  1-\frac{1}{(2m+2)^2}
+    <1.
+\]
+Thus $B_m$ decreases with $m$.  Part (c) implies
+\[
+  B_m
+    =
+  (2m+1)
+  \left(
+    \sqrt{\frac{2}{\pi}}\frac{1}{\sqrt{2m+1}}
+    +O((2m+1)^{-3/2})
+  \right)^2
+    =
+  \frac{2}{\pi}+O(n^{-1}).
+\]
+In particular $B_m\to 2/\pi$.  Since $B_m$ is decreasing to this limit,
+\[
+  \frac{2}{\pi}
+    \le
+  \Wone[\Maj_n]
+    \le
+  \frac{2}{\pi}+O(n^{-1})
+\]
+for odd $n$.
+
+\item
+The total influence is the sum of the individual influences:
+\[
+  \I[\Maj_n]
+    =
+  \sum_{i=1}^n \Inf_i[\Maj_n]
+    =
+  n\,\Inf_1[\Maj_n].
+\]
+Using part (c),
+\[
+  \I[\Maj_n]
+    =
+  n\left(
+    \sqrt{\frac{2}{\pi}}\frac{1}{\sqrt n}
+    +O(n^{-3/2})
+  \right)
+    =
+  \sqrt{\frac{2}{\pi}}\sqrt n+O(n^{-1/2}).
+\]
+For the lower bound, part (d) gives
+\[
+  \Wone[\Maj_n]
+    =
+  n\,\Inf_1[\Maj_n]^2
+    \ge
+  \frac{2}{\pi}.
+\]
+Since $\Inf_1[\Maj_n]\ge 0$,
+\[
+  \I[\Maj_n]
+    =
+  n\,\Inf_1[\Maj_n]
+    =
+  \sqrt{n\,\Wone[\Maj_n]}
+    \ge
+  \sqrt{\frac{2}{\pi}}\sqrt n.
+\]
+Combining the lower bound with the asymptotic upper estimate yields
+\[
+  \sqrt{\frac{2}{\pi}}\sqrt n
+    \le
+  \I[\Maj_n]
+    \le
+  \sqrt{\frac{2}{\pi}}\sqrt n+O(n^{-1/2})
+\]
+for odd $n$.
+
+\item
+Let $n=2m$ be even, and let
+$f:\{-1,1\}^{2m}\to\{-1,1\}$ be any majority function: it agrees with
+the sign of $x_1+\cdots+x_{2m}$ when this sum is nonzero, and it may
+break ties arbitrarily when the sum is zero.
+
+We count boundary edges.  A boundary edge is an unordered edge of the
+hypercube whose endpoints have different $f$-values.  Total influence is
+\[
+  \I[f]=\frac{2\cdot \#\{\text{boundary edges of } f\}}{2^{2m}},
+\]
+because every boundary edge contributes once from each endpoint to the
+average sensitivity.
+
+If a vertex is not on the tie layer, then an edge can cross the boundary
+only if its other endpoint is on the tie layer.  Thus every boundary edge
+has a unique endpoint $x$ with
+\[
+  x_1+\cdots+x_{2m}=0.
+\]
+There are $\binom{2m}{m}$ such tie vertices.
+
+Fix a tie vertex $x$.  It has exactly $m$ coordinates equal to $+1$ and
+$m$ coordinates equal to $-1$.  If $f(x)=1$, then flipping one of the
+$+1$ coordinates moves to total sum $-2$, where every majority function
+has value $-1$; these are exactly $m$ boundary edges incident to $x$.
+Flipping a $-1$ coordinate moves to total sum $+2$, where the value is
+$+1$, so those edges are not boundary edges.  If $f(x)=-1$, the same
+argument with signs reversed again gives exactly $m$ boundary edges
+incident to $x$.
+
+Hence every tie vertex contributes exactly $m$ boundary edges, independent
+of the tie-breaking rule.  Therefore
+\[
+  \#\{\text{boundary edges}\}=m\binom{2m}{m},
+\]
+and
+\[
+  \I[f]
+    =
+  \frac{2m\binom{2m}{m}}{2^{2m}}.
+\]
+On the other hand, by part (a),
+\[
+  \I[\Maj_{2m-1}]
+    =
+  (2m-1)\frac{\binom{2m-2}{m-1}}{2^{2m-2}}.
+\]
+Using
+\[
+  \binom{2m}{m}
+    =
+  \frac{(2m)(2m-1)}{m^2}\binom{2m-2}{m-1},
+\]
+we get
+\[
+  \frac{2m\binom{2m}{m}}{2^{2m}}
+    =
+  \frac{(2m-1)\binom{2m-2}{m-1}}{2^{2m-2}}
+    =
+  \I[\Maj_{2m-1}].
+\]
+Thus
+\[
+  \I[f]=\I[\Maj_{n-1}].
+\]
+Finally, applying part (e) to the odd integer $n-1$ gives
+\[
+  \I[f]
+    =
+  \sqrt{\frac{2}{\pi}}\sqrt{n-1}+O(n^{-1/2})
+    =
+  \sqrt{\frac{2}{\pi}}\sqrt n+O(n^{-1/2}).
+\]
+\end{enumerate}
+
+\end{document}
