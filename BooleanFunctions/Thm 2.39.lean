@@ -319,6 +319,163 @@ theorem totalInfluence_ge_boolean_variance {n : Nat}
 
 /-! ## Theorem 2.39 -/
 
+/-! ### Negating a Boolean function and minority probability -/
+
+/-- The pointwise negation of a sign-valued Boolean function. -/
+def negateSignFunction {n : Nat} (f : BooleanFunctionSign n) : BooleanFunctionSign n :=
+  fun x => negSignBit (f x)
+
+/--
+The minority probability of a sign-valued Boolean function:
+the smaller of `Pr[f = -1]` and `Pr[f = 1]`.
+-/
+noncomputable def minorityProbability {n : Nat} (f : BooleanFunctionSign n) : Real :=
+  min (signValueProbability f SignBit.negOne)
+    (signValueProbability f SignBit.posOne)
+
+lemma signValueProbability_negate_negOne {n : Nat}
+    (f : BooleanFunctionSign n) :
+    signValueProbability (negateSignFunction f) SignBit.negOne =
+      signValueProbability f SignBit.posOne := by
+  classical
+  unfold signValueProbability cubeProbability cubeExpectation negateSignFunction
+  congr 1
+  apply Finset.sum_congr rfl
+  intro x _hx
+  cases h : f x <;> simp [h, negSignBit]
+
+lemma signValueProbability_negate_posOne {n : Nat}
+    (f : BooleanFunctionSign n) :
+    signValueProbability (negateSignFunction f) SignBit.posOne =
+      signValueProbability f SignBit.negOne := by
+  classical
+  unfold signValueProbability cubeProbability cubeExpectation negateSignFunction
+  congr 1
+  apply Finset.sum_congr rfl
+  intro x _hx
+  cases h : f x <;> simp [h, negSignBit]
+
+lemma minorityProbability_nonneg {n : Nat}
+    (f : BooleanFunctionSign n) :
+    0 ≤ minorityProbability f := by
+  unfold minorityProbability
+  exact le_min (cubeProbability_nonneg _) (cubeProbability_nonneg _)
+
+lemma minorityProbability_le_half {n : Nat}
+    (f : BooleanFunctionSign n) :
+    minorityProbability f ≤ (1 : Real) / 2 := by
+  classical
+  unfold minorityProbability
+  have hsum := signValueProbability_pos_add_neg f
+  by_cases hle :
+      signValueProbability f SignBit.negOne ≤
+        signValueProbability f SignBit.posOne
+  · rw [min_eq_left hle]
+    linarith
+  · have hle' :
+        signValueProbability f SignBit.posOne ≤
+          signValueProbability f SignBit.negOne := le_of_not_ge hle
+    rw [min_eq_right hle']
+    linarith
+
+lemma signValueProbability_le_one {n : Nat}
+    (f : BooleanFunctionSign n) (a : SignBit) :
+    signValueProbability f a ≤ 1 := by
+  have hsum := signValueProbability_pos_add_neg f
+  cases a
+  · have hpos :
+        0 ≤ signValueProbability f SignBit.posOne :=
+      cubeProbability_nonneg _
+    linarith
+  · have hneg :
+        0 ≤ signValueProbability f SignBit.negOne :=
+      cubeProbability_nonneg _
+    linarith
+
+lemma minorityProbability_eq_negOne_of_le_half {n : Nat}
+    {f : BooleanFunctionSign n}
+    (h : signValueProbability f SignBit.negOne ≤ (1 : Real) / 2) :
+    minorityProbability f =
+      signValueProbability f SignBit.negOne := by
+  unfold minorityProbability
+  have hsum := signValueProbability_pos_add_neg f
+  have hle :
+      signValueProbability f SignBit.negOne ≤
+        signValueProbability f SignBit.posOne := by
+    linarith
+  exact min_eq_left hle
+
+lemma minorityProbability_eq_posOne_of_le_half {n : Nat}
+    {f : BooleanFunctionSign n}
+    (h : signValueProbability f SignBit.posOne ≤ (1 : Real) / 2) :
+    minorityProbability f =
+      signValueProbability f SignBit.posOne := by
+  unfold minorityProbability
+  have hsum := signValueProbability_pos_add_neg f
+  have hle :
+      signValueProbability f SignBit.posOne ≤
+        signValueProbability f SignBit.negOne := by
+    linarith
+  exact min_eq_right hle
+
+lemma minorityProbability_negate {n : Nat}
+    (f : BooleanFunctionSign n) :
+    minorityProbability (negateSignFunction f) =
+      minorityProbability f := by
+  unfold minorityProbability
+  rw [signValueProbability_negate_negOne,
+    signValueProbability_negate_posOne]
+  exact min_comm _ _
+
+lemma signFunctionToReal_negate {n : Nat}
+    (f : BooleanFunctionSign n) :
+    signFunctionToReal (negateSignFunction f) =
+      fun x => - signFunctionToReal f x := by
+  funext x
+  cases h : f x <;> simp [signFunctionToReal, negateSignFunction, negSignBit, h,
+    SignBit.toReal]
+
+lemma discreteDerivative_neg {n : Nat}
+    (f : RealValuedBooleanFunction n) (i : Fin n) (x : SignCube n) :
+    discreteDerivative (fun y => - f y) i x =
+      - discreteDerivative f i x := by
+  unfold discreteDerivative
+  ring
+
+lemma derivativeInfluence_neg {n : Nat}
+    (f : RealValuedBooleanFunction n) (i : Fin n) :
+    derivativeInfluence (fun x => - f x) i =
+      derivativeInfluence f i := by
+  unfold derivativeInfluence
+  congr 1
+  funext x
+  rw [discreteDerivative_neg]
+  ring
+
+lemma influence_neg {n : Nat}
+    (f : RealValuedBooleanFunction n) (i : Fin n) :
+    influence (fun x => - f x) i =
+      influence f i := by
+  rw [influence_eq_derivativeInfluence (fun x => - f x) i,
+    influence_eq_derivativeInfluence f i]
+  exact derivativeInfluence_neg f i
+
+lemma totalInfluence_neg {n : Nat}
+    (f : RealValuedBooleanFunction n) :
+    totalInfluence (fun x => - f x) =
+      totalInfluence f := by
+  unfold totalInfluence
+  apply Finset.sum_congr rfl
+  intro i _hi
+  exact influence_neg f i
+
+lemma totalInfluence_negateSignFunction {n : Nat}
+    (f : BooleanFunctionSign n) :
+    totalInfluence (signFunctionToReal (negateSignFunction f)) =
+      totalInfluence (signFunctionToReal f) := by
+  rw [signFunctionToReal_negate]
+  exact totalInfluence_neg (signFunctionToReal f)
+
 /-! ### The real-variable induction inequality
 
 The sharp edge-isoperimetric induction step reduces to the following
@@ -515,6 +672,157 @@ lemma edgeIsoperimetricLowerBound_midpoint_le_average_add_abs {a b : Real}
     have h := haux hb ha hba
     simpa [add_comm, add_left_comm, add_assoc, abs_sub_comm] using h
 
+/-- A logarithmic inequality used to compare a set with its complement. -/
+lemma log_ratio_bound {r : Real} (hr : 1 ≤ r) :
+    (r - 1) * Real.log (r + 1) ≤ r * Real.log r := by
+  have hrpos : 0 < r := lt_of_lt_of_le zero_lt_one hr
+  have hnonneg : 0 ≤ r - 1 := sub_nonneg.mpr hr
+  have hone :
+      Real.log (r + 1) ≤ Real.log r + 1 / r := by
+    have hpos : 0 < 1 + 1 / r := by positivity
+    have hlog : Real.log (1 + 1 / r) ≤ 1 / r := by
+      have h := Real.log_le_sub_one_of_pos hpos
+      linarith
+    calc
+      Real.log (r + 1) =
+          Real.log (r * (1 + 1 / r)) := by
+            congr 1
+            field_simp [hrpos.ne']
+      _ = Real.log r + Real.log (1 + 1 / r) := by
+            rw [Real.log_mul hrpos.ne' hpos.ne']
+      _ ≤ Real.log r + 1 / r := by
+            linarith
+  have hmul :
+      (r - 1) * Real.log (r + 1) ≤
+        (r - 1) * (Real.log r + 1 / r) :=
+    mul_le_mul_of_nonneg_left hone hnonneg
+  have hlower : 1 - r⁻¹ ≤ Real.log r :=
+    Real.one_sub_inv_le_log_of_pos hrpos
+  have hupper :
+      (r - 1) * (Real.log r + 1 / r) ≤ r * Real.log r := by
+    have hrewrite :
+        (r - 1) * (Real.log r + 1 / r) =
+          (r - 1) * Real.log r + (1 - r⁻¹) := by
+      field_simp [hrpos.ne']
+    nlinarith [hrewrite, hlower]
+  exact hmul.trans hupper
+
+lemma one_sub_mul_log_le_mul_log {p : Real}
+    (hp_half : (1 : Real) / 2 ≤ p) (hp1 : p ≤ 1) :
+    (1 - p) * Real.log (1 - p) ≤ p * Real.log p := by
+  by_cases hp_one : p = 1
+  · subst p
+    simp
+  · have hqpos : 0 < 1 - p := sub_pos.mpr (lt_of_le_of_ne hp1 hp_one)
+    have hppos : 0 < p := by linarith
+    let r : Real := p / (1 - p)
+    have hr : 1 ≤ r := by
+      dsimp [r]
+      rw [le_div_iff₀ hqpos]
+      linarith
+    have hrpos : 0 < r := lt_of_lt_of_le zero_lt_one hr
+    have hp_eq : p = r * (1 - p) := by
+      dsimp [r]
+      rw [div_mul_cancel₀ _ hqpos.ne']
+    have hq_eq : 1 - p = (r + 1)⁻¹ := by
+      dsimp [r]
+      field_simp [hqpos.ne']
+      ring
+    have hlogp : Real.log p = Real.log r + Real.log (1 - p) := by
+      calc
+        Real.log p = Real.log (r * (1 - p)) := congrArg Real.log hp_eq
+        _ = Real.log r + Real.log (1 - p) :=
+          Real.log_mul hrpos.ne' hqpos.ne'
+    have hlogq : Real.log (1 - p) = - Real.log (r + 1) := by
+      rw [hq_eq, Real.log_inv]
+    have hbase := log_ratio_bound hr
+    have hscaled :
+        (1 - p) * ((r - 1) * Real.log (r + 1)) ≤
+          (1 - p) * (r * Real.log r) :=
+      mul_le_mul_of_nonneg_left hbase hqpos.le
+    have hscaled' :
+        (p - (1 - p)) * Real.log (r + 1) ≤ p * Real.log r := by
+      have hp_eq_mul : (1 - p) * r = p := by
+        rw [mul_comm, ← hp_eq]
+      have hleft :
+          (1 - p) * ((r - 1) * Real.log (r + 1)) =
+            (p - (1 - p)) * Real.log (r + 1) := by
+        calc
+          (1 - p) * ((r - 1) * Real.log (r + 1)) =
+              ((1 - p) * r - (1 - p)) * Real.log (r + 1) := by ring
+          _ = (p - (1 - p)) * Real.log (r + 1) := by
+              rw [hp_eq_mul]
+      have hright :
+          (1 - p) * (r * Real.log r) = p * Real.log r := by
+        calc
+          (1 - p) * (r * Real.log r) =
+              ((1 - p) * r) * Real.log r := by ring
+          _ = p * Real.log r := by
+              rw [hp_eq_mul]
+      simpa [hleft, hright] using hscaled
+    have haux :
+        (1 - p - p) * Real.log (1 - p) ≤ p * Real.log r := by
+      rw [hlogq]
+      convert hscaled' using 1
+      ring
+    rw [hlogp]
+    nlinarith
+
+lemma negMulLog_le_negMulLog_one_sub_of_half_le {p : Real}
+    (hp_half : (1 : Real) / 2 ≤ p) (hp1 : p ≤ 1) :
+    Real.negMulLog p ≤ Real.negMulLog (1 - p) := by
+  have h := one_sub_mul_log_le_mul_log hp_half hp1
+  unfold Real.negMulLog
+  nlinarith
+
+lemma edgeIsoperimetricLowerBound_le_complement_of_half_le {p : Real}
+    (hp_half : (1 : Real) / 2 ≤ p) (hp1 : p ≤ 1) :
+    edgeIsoperimetricLowerBound p ≤
+      edgeIsoperimetricLowerBound (1 - p) := by
+  rw [edgeIsoperimetricLowerBound_eq_negMulLog,
+    edgeIsoperimetricLowerBound_eq_negMulLog]
+  have hlog_pos : 0 < Real.log 2 := Real.log_pos (by norm_num)
+  exact mul_le_mul_of_nonneg_left
+    (negMulLog_le_negMulLog_one_sub_of_half_le hp_half hp1)
+    (div_nonneg (by norm_num) hlog_pos.le)
+
+lemma edgeIsoperimetricLowerBound_le_min_of_probability {p : Real}
+    (_hp0 : 0 ≤ p) (hp1 : p ≤ 1) :
+    edgeIsoperimetricLowerBound p ≤
+      edgeIsoperimetricLowerBound (min p (1 - p)) := by
+  by_cases hp_half : p ≤ (1 : Real) / 2
+  · have hmin : min p (1 - p) = p := by
+      rw [min_eq_left]
+      linarith
+    rw [hmin]
+  · have hp_half' : (1 : Real) / 2 ≤ p := le_of_not_ge hp_half
+    have hmin : min p (1 - p) = 1 - p := by
+      rw [min_eq_right]
+      linarith
+    rw [hmin]
+    exact edgeIsoperimetricLowerBound_le_complement_of_half_le hp_half' hp1
+
+lemma edgeIsoperimetricLowerBound_le_minorityProbability {n : Nat}
+    (f : BooleanFunctionSign n) (a : SignBit) :
+    edgeIsoperimetricLowerBound (signValueProbability f a) ≤
+      edgeIsoperimetricLowerBound (minorityProbability f) := by
+  have hp0 : 0 ≤ signValueProbability f a := cubeProbability_nonneg _
+  have hp1 : signValueProbability f a ≤ 1 := signValueProbability_le_one f a
+  have hsum := signValueProbability_pos_add_neg f
+  cases a
+  · have hcomp :
+        1 - signValueProbability f SignBit.negOne =
+          signValueProbability f SignBit.posOne := by
+      linarith
+    simpa [minorityProbability, hcomp] using
+      edgeIsoperimetricLowerBound_le_min_of_probability hp0 hp1
+  · have hcomp :
+        1 - signValueProbability f SignBit.posOne =
+          signValueProbability f SignBit.negOne := by
+      linarith
+    simpa [minorityProbability, min_comm, hcomp] using
+      edgeIsoperimetricLowerBound_le_min_of_probability hp0 hp1
+
 /--
 The direct Poincare consequence in the notation of Theorem 2.39.
 
@@ -538,14 +846,150 @@ theorem theorem_2_39_poincare_variance_bound {n : Nat}
     linarith
   simpa [α, hpos, mul_comm, mul_left_comm, mul_assoc] using hpoincare
 
-/-!
-The sharp Theorem 2.39 still requires one additional block:
+/-- On the zero-dimensional cube, a point probability is just an indicator. -/
+lemma signValueProbability_zero
+    (f : BooleanFunctionSign 0) (a : SignBit) :
+    signValueProbability f a =
+      if f (fun i : Fin 0 => Fin.elim0 i) = a then 1 else 0 := by
+  classical
+  let x0 : SignCube 0 := fun i : Fin 0 => Fin.elim0 i
+  have huniv : (Finset.univ : Finset (SignCube 0)) = {x0} := by
+    ext x
+    simp only [Finset.mem_univ, Finset.mem_singleton, true_iff]
+    exact Subsingleton.elim x x0
+  unfold signValueProbability cubeProbability cubeExpectation
+  rw [huniv]
+  by_cases h : f x0 = a
+  · have hfilter :
+        ({x ∈ ({x0} : Finset (SignCube 0)) | f x = a}) = {x0} := by
+      ext x
+      simp only [Finset.mem_filter, Finset.mem_singleton]
+      constructor
+      · intro hx
+        exact hx.1
+      · intro hx
+        subst x
+        exact ⟨rfl, h⟩
+    simp [x0, h, hfilter]
+  · have hfilter :
+        ({x ∈ ({x0} : Finset (SignCube 0)) | f x = a}) = ∅ := by
+      ext x
+      simp only [Finset.mem_filter, Finset.mem_singleton]
+      constructor
+      · intro hx
+        exfalso
+        have hx0 : x = x0 := hx.1
+        subst x
+        exact h hx.2
+      · intro hx
+        simp at hx
+    simp [x0, h, hfilter]
 
-* the induction-by-restrictions real inequality for
-  `φ α = 2 * α * (Real.log (1 / α) / Real.log 2)`;
-* then the already-proved slicing identity
-  `totalInfluence_succ_eq_average_slices_add_disagreement` supplies the
-  recursive influence decomposition.
+/--
+The induction hypothesis in Theorem 2.39 can be applied to the minority side
+of an arbitrary sign-valued Boolean function. If `Pr[f = -1]` is already at
+most `1/2`, use the hypothesis directly; otherwise apply it to `-f`.
 -/
+lemma statement2_39_minority_bound {n : Nat}
+    (h : Statement2_39 n) (f : BooleanFunctionSign n) :
+    edgeIsoperimetricLowerBound (minorityProbability f) ≤
+      totalInfluence (signFunctionToReal f) := by
+  classical
+  by_cases hneg :
+      signValueProbability f SignBit.negOne ≤ (1 : Real) / 2
+  · have hdirect := h f
+    dsimp [Statement2_39] at hdirect
+    have hbound := hdirect hneg
+    rwa [minorityProbability_eq_negOne_of_le_half hneg]
+  · have hpos :
+        signValueProbability f SignBit.posOne ≤ (1 : Real) / 2 := by
+      have hsum := signValueProbability_pos_add_neg f
+      have hneg_half : (1 : Real) / 2 ≤
+          signValueProbability f SignBit.negOne := le_of_not_ge hneg
+      linarith
+    have hnegate_prob :
+        signValueProbability (negateSignFunction f) SignBit.negOne ≤
+          (1 : Real) / 2 := by
+      simpa [signValueProbability_negate_negOne] using hpos
+    have hdirect := h (negateSignFunction f)
+    dsimp [Statement2_39] at hdirect
+    have hbound := hdirect hnegate_prob
+    rw [signValueProbability_negate_negOne,
+      totalInfluence_negateSignFunction] at hbound
+    rwa [minorityProbability_eq_posOne_of_le_half hpos]
+
+/-- O'Donnell, Theorem 2.39: the edge-isoperimetric lower bound. -/
+theorem theorem_2_39 : ∀ n : Nat, Statement2_39 n := by
+  intro n
+  induction n with
+  | zero =>
+      intro f
+      dsimp [Statement2_39]
+      intro hα
+      let x0 : SignCube 0 := fun i : Fin 0 => Fin.elim0 i
+      cases hfx : f x0
+      · have hprob :
+            signValueProbability f SignBit.negOne = 1 := by
+          simpa [x0, hfx] using
+            signValueProbability_zero f SignBit.negOne
+        linarith
+      · have hprob :
+            signValueProbability f SignBit.negOne = 0 := by
+          simpa [x0, hfx] using
+            signValueProbability_zero f SignBit.negOne
+        rw [hprob]
+        simp [edgeIsoperimetricLowerBound, totalInfluence]
+  | succ n ih =>
+      intro f
+      dsimp [Statement2_39]
+      intro hα
+      let f0 : BooleanFunctionSign n := lastSlice f SignBit.negOne
+      let f1 : BooleanFunctionSign n := lastSlice f SignBit.posOne
+      let p : Real := signValueProbability f0 SignBit.negOne
+      let q : Real := signValueProbability f1 SignBit.negOne
+      have hprob :
+          signValueProbability f SignBit.negOne = (p + q) / 2 := by
+        dsimp [p, q, f0, f1]
+        exact signValueProbability_lastSlice f SignBit.negOne
+      have hp0 : 0 ≤ p := by
+        dsimp [p]
+        exact cubeProbability_nonneg _
+      have hq0 : 0 ≤ q := by
+        dsimp [q]
+        exact cubeProbability_nonneg _
+      have hreal :
+          edgeIsoperimetricLowerBound ((p + q) / 2) ≤
+            (edgeIsoperimetricLowerBound p +
+                edgeIsoperimetricLowerBound q) / 2 +
+              |p - q| :=
+        edgeIsoperimetricLowerBound_midpoint_le_average_add_abs hp0 hq0
+      have hgap :
+          |p - q| ≤ lastSliceDisagreementProbability f := by
+        dsimp [p, q, f0, f1]
+        exact signValueProbability_slice_abs_sub_le_disagreement f
+      have hminor0 :
+          edgeIsoperimetricLowerBound (minorityProbability f0) ≤
+            totalInfluence (signFunctionToReal f0) :=
+        statement2_39_minority_bound ih f0
+      have hminor1 :
+          edgeIsoperimetricLowerBound (minorityProbability f1) ≤
+            totalInfluence (signFunctionToReal f1) :=
+        statement2_39_minority_bound ih f1
+      have hI0 :
+          edgeIsoperimetricLowerBound p ≤
+            totalInfluence (signFunctionToReal f0) := by
+        dsimp [p]
+        exact (edgeIsoperimetricLowerBound_le_minorityProbability
+          f0 SignBit.negOne).trans hminor0
+      have hI1 :
+          edgeIsoperimetricLowerBound q ≤
+            totalInfluence (signFunctionToReal f1) := by
+        dsimp [q]
+        exact (edgeIsoperimetricLowerBound_le_minorityProbability
+          f1 SignBit.negOne).trans hminor1
+      rw [hprob]
+      rw [totalInfluence_succ_eq_average_slices_add_disagreement f]
+      dsimp [f0, f1] at hI0 hI1
+      nlinarith
 
 end BooleanFunctions
