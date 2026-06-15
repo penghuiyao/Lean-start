@@ -15,6 +15,7 @@ import InformationTheory.thm_AEP
 import InformationTheory.Typicality
 import InformationTheory.datacompression
 import InformationTheory.Kraft
+import InformationTheory.OptimalCode
 import InformationTheory.SourceCoding
 import InformationTheory.ChannelCoding
 import InformationTheory.Inequalities
