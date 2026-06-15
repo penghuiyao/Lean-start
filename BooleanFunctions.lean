@@ -11,6 +11,8 @@ import BooleanFunctions.«Thm 2.33»
 import BooleanFunctions.Poincare
 import BooleanFunctions.«Thm 2.39»
 import BooleanFunctions.Noise
+import BooleanFunctions.«noise stability»
+import BooleanFunctions.«thm noise stability»
 import BooleanFunctions.Examples
 import BooleanFunctions.Hypercontractivity
 import BooleanFunctions.KKL
